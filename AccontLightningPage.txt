@@ -1,0 +1,84 @@
+=====Class===========
+
+public class AccountRecord {
+    @AuraEnabled
+    public static List<Account> getAccountRecord()
+       {
+        List<Account> acc=[Select id,Name,Phone,Type,createdDate  from Account Order By createdDate DESC Limit 10];
+        return acc; 
+       }
+}
+=======Lightning Application==============
+
+<aura:application extends="force:slds" >
+    <c:Recently_created_Account_Record_Component />
+</aura:application>
+
+==============Lightning controller==========
+
+<aura:component controller="AccountRecord" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId" access="global" >
+ <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:attribute name="accLst" type="Account[]"/>
+    <article>
+        <header>
+            <h2>Account</h2>
+        </header>
+        <table>
+          <thead>
+            <tr>
+              <th>
+                <div title="Name">Name</div>
+              </th>
+              <th>
+                <div title="Type">Type</div>
+              </th>
+              <th>
+                <div  title="Phone">Phone</div>
+              </th>
+              <th>
+                <div title="Phone">CreatedDate</div>
+              </th>     
+            </tr>
+          </thead>
+          <tbody>
+              <aura:iteration items="{!v.accLst}" var="acc">
+                  <tr>
+                      <td>
+                          <div title="Name">{!acc.Name}</div>
+                      </td>
+                      <td>
+                          <div title="Type">{!acc.Type}</div>
+                      </td>
+                      <td>
+                          <div title="Phone">{!acc.Phone}</div>
+                      </td>
+                      <td>
+                          <div title="CreatedDate">{!acc.CreatedDate}</div>
+                      </td>
+                  </tr>                     
+              </aura:iteration>
+          </tbody>
+        </table>
+    </article>
+</aura:component>
+
+===========Component Controller==================
+({
+                doInit : function(component, event, helper) {
+                                helper.getAccontRecord(component);
+                }
+})
+
+==========Component Helper================
+({
+        getAccontRecord : function( component ) {
+                                var action = component.get("c.getAccountRecord");
+        action.setCallback(this, function(response) {
+            var state = response.getState();
+            var result = JSON.stringify(response.getReturnValue());
+            if (component.isValid() && state === "SUCCESS")
+                component.set("v.accLst", response.getReturnValue()); 
+        });
+        $A.enqueueAction(action);
+                }
+})

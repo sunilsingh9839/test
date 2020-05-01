@@ -1,0 +1,26 @@
+trigger countContactOnAccount on Contact (after insert,after delete,after update) {
+        List<Contact> con=new List<Contact>();
+              if(trigger.isDelete){
+                 con=trigger.old;
+                 }
+              else{
+                 con=trigger.new;
+                 }
+        set<id> setid=new set<id>();
+        for(Contact c:con){
+              setid.add(c.AccountId);
+          }
+        List<Account> acc=[Select Id, Name, (Select Id, Name from Contacts) from Account where Id in:setid];
+        for(Account a:acc){
+              List<Contact> contact=a.Contacts;
+              a.Number_of_Contacts__c=contact.size();
+          }
+   try{
+        update acc;
+        System.Debug('Update successful on Account');
+     }
+  catch (DmlException e)
+     {
+      System.debug('The following exception has occurred: ' + e.getMessage());
+     }
+ }
